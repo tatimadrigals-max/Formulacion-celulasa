@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import plotly.express as px
 import matplotlib.pyplot as plt
+from matplotlib.text import Text
 import shap
 
 from io import BytesIO
@@ -467,30 +468,121 @@ def exportar_excel(df, tabla_eda):
     return salida.getvalue()
 
 
+def obtener_colores_graficos():
+    """
+    Obtiene los colores del tema activo de Streamlit.
+    Usa valores seguros si la versión de Streamlit no expone st.context.theme.
+    """
+    tema = {}
+    try:
+        tema = dict(st.context.theme)
+    except Exception:
+        tema = {}
+
+    base = str(tema.get("base") or st.get_option("theme.base") or "light").lower()
+    es_oscuro = base == "dark"
+
+    if es_oscuro:
+        return {
+            "plantilla": "plotly_dark",
+            "texto": "#F1F5F9",
+            "fondo": "#0E1117",
+            "trazado": "#161B22",
+            "rejilla": "#3B4758",
+            "matplotlib_fondo": "#0E1117",
+            "matplotlib_ejes": "#161B22",
+            "matplotlib_texto": "#F1F5F9",
+            "matplotlib_rejilla": "#465366",
+        }
+
+    return {
+        "plantilla": "plotly_white",
+        "texto": "#243447",
+        "fondo": "#FFFFFF",
+        "trazado": "#FFFFFF",
+        "rejilla": "#D9E2EC",
+        "matplotlib_fondo": "#FFFFFF",
+        "matplotlib_ejes": "#FFFFFF",
+        "matplotlib_texto": "#243447",
+        "matplotlib_rejilla": "#D9E2EC",
+    }
+
+
 def aplicar_estilo_figura(figura):
-
-    # plotly_dark permite que los gráficos mantengan contraste en modo oscuro.
-    # El tema de Streamlit se detecta desde la configuración del usuario.
-    tema_streamlit = st.get_option("theme.base")
-    plantilla = "plotly_dark" if tema_streamlit == "dark" else "plotly_white"
-
-    color_texto = "#E6EDF5" if plantilla == "plotly_dark" else "#29483D"
-    color_fondo = "#0E1117" if plantilla == "plotly_dark" else "#FFFFFF"
-    color_trazado = "#161B22" if plantilla == "plotly_dark" else "#FFFFFF"
-    color_rejilla = "#344255" if plantilla == "plotly_dark" else "#E6EDF5"
+    colores = obtener_colores_graficos()
 
     figura.update_layout(
-        template=plantilla,
+        template=colores["plantilla"],
         title_x=0.02,
-        font=dict(color=color_texto),
-        paper_bgcolor=color_fondo,
-        plot_bgcolor=color_trazado,
-        margin=dict(l=25, r=25, t=65, b=35),
-        xaxis=dict(gridcolor=color_rejilla, zerolinecolor=color_rejilla),
-        yaxis=dict(gridcolor=color_rejilla, zerolinecolor=color_rejilla)
+        font=dict(
+            family="Arial, sans-serif",
+            size=13,
+            color=colores["texto"]
+        ),
+        title_font=dict(color=colores["texto"], size=17),
+        paper_bgcolor=colores["fondo"],
+        plot_bgcolor=colores["trazado"],
+        margin=dict(l=35, r=35, t=70, b=45),
+        xaxis=dict(
+            gridcolor=colores["rejilla"],
+            zerolinecolor=colores["rejilla"],
+            color=colores["texto"],
+            title_font=dict(color=colores["texto"], size=13),
+            tickfont=dict(color=colores["texto"], size=11),
+            showline=True,
+            linecolor=colores["rejilla"]
+        ),
+        yaxis=dict(
+            gridcolor=colores["rejilla"],
+            zerolinecolor=colores["rejilla"],
+            color=colores["texto"],
+            title_font=dict(color=colores["texto"], size=13),
+            tickfont=dict(color=colores["texto"], size=11),
+            showline=True,
+            linecolor=colores["rejilla"]
+        ),
+        legend=dict(
+            font=dict(color=colores["texto"], size=11),
+            title_font=dict(color=colores["texto"])
+        ),
+        coloraxis_colorbar=dict(
+            tickfont=dict(color=colores["texto"]),
+            title_font=dict(color=colores["texto"])
+        )
     )
-
     return figura
+
+
+def aplicar_estilo_matplotlib(figura, ejes=None):
+    """Asegura contraste de títulos, ejes, marcas y leyendas en SHAP y PDP."""
+    colores = obtener_colores_graficos()
+    figura.patch.set_facecolor(colores["matplotlib_fondo"])
+
+    if ejes is None:
+        ejes = figura.axes
+
+    for ax in ejes:
+        ax.set_facecolor(colores["matplotlib_ejes"])
+        ax.tick_params(axis="both", colors=colores["matplotlib_texto"], labelsize=10)
+        ax.xaxis.label.set_color(colores["matplotlib_texto"])
+        ax.yaxis.label.set_color(colores["matplotlib_texto"])
+        ax.title.set_color(colores["matplotlib_texto"])
+
+        for spine in ax.spines.values():
+            spine.set_color(colores["matplotlib_rejilla"])
+
+        ax.grid(color=colores["matplotlib_rejilla"], alpha=0.35)
+
+        legend = ax.get_legend()
+        if legend is not None:
+            legend.get_frame().set_facecolor(colores["matplotlib_ejes"])
+            legend.get_frame().set_edgecolor(colores["matplotlib_rejilla"])
+            for texto in legend.get_texts():
+                texto.set_color(colores["matplotlib_texto"])
+
+    # También ajusta textos auxiliares, por ejemplo la barra de color de SHAP.
+    for texto in figura.findobj(match=Text):
+        texto.set_color(colores["matplotlib_texto"])
 
 
 # =========================================================
@@ -1681,6 +1773,7 @@ with tab_modelo:
             plt.title(
                 "Contribución de las variables a las predicciones de FPU/ml"
             )
+            aplicar_estilo_matplotlib(fig_shap)
 
             plt.tight_layout()
 
@@ -1771,6 +1864,7 @@ with tab_modelo:
                 ax.set_ylabel(
                     "FPU/ml predicho"
                 )
+                aplicar_estilo_matplotlib(fig_pdp, [ax])
 
                 plt.tight_layout()
 
