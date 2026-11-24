@@ -1,4 +1,5 @@
 
+
 import streamlit as st
 import pandas as pd
 import numpy as np
@@ -71,20 +72,8 @@ VARIABLES_DISPERSION = [
 
 st.markdown("""
 <style>
-/* Colores adaptables al tema claro u oscuro de Streamlit */
-:root {
-    --panel-bg: #FFFFFF;
-    --panel-border: color-mix(in srgb, var(--text-color) 18%, transparent);
-    --panel-title: #17365D;
-    --panel-text: #56708D;
-    --accent: #79B8E8;
-    --source-bg: #D8E9F8;
-}
-
-/* Fondo y texto principal */
-.stApp {
-    background-color: var(--background-color, #EFF5FC);
-}
+/* Dejar que Streamlit controle el fondo y el color de texto según el tema activo.
+   No se fija un fondo claro: esto evita texto blanco sobre fondo claro en dark mode. */
 
 /* Barra lateral */
 [data-testid="stSidebar"] {
@@ -94,7 +83,7 @@ st.markdown("""
     color: #FFFFFF !important;
 }
 [data-testid="stSidebar"] h2 {
-    font-size: 1.55rem !important;
+    font-size: 1.65rem !important;
     line-height: 1.3 !important;
     font-weight: 750 !important;
     letter-spacing: 0.1px;
@@ -109,68 +98,63 @@ st.markdown("""
     border: 1px dashed #79B8E8;
 }
 
-/* Encabezados: respetan el color de texto del tema */
+/* Los encabezados heredan el color que Streamlit establece para el tema */
 h1, h2, h3, h4, h5, h6 {
-    color: var(--text-color) !important;
+    color: inherit !important;
 }
 
 /* Métricas */
 div[data-testid="stMetric"] {
-    background-color: var(--secondary-background-color);
+    background-color: var(--secondary-background-color, rgba(128, 128, 128, 0.10));
     padding: 17px;
     border-radius: 12px;
-    border: 1px solid var(--panel-border);
-}
-div[data-testid="stMetricLabel"],
-div[data-testid="stMetricValue"] {
-    color: var(--text-color) !important;
+    border: 1px solid rgba(128, 128, 128, 0.25);
 }
 
 /* Tarjetas informativas */
 .info-card {
-    background: var(--secondary-background-color);
-    border: 1px solid var(--panel-border);
+    background: var(--secondary-background-color, rgba(128, 128, 128, 0.10));
+    color: inherit;
+    border: 1px solid rgba(128, 128, 128, 0.25);
     border-radius: 12px;
     padding: 18px;
     min-height: 112px;
 }
 .info-card-title {
-    color: var(--text-color);
+    color: inherit;
     font-weight: 700;
     font-size: 15px;
 }
 .info-card-text {
-    color: var(--text-color);
+    color: inherit;
     opacity: 0.82;
     font-size: 13px;
 }
 
 /* Fuente de datos */
 .source-card {
-    background: var(--secondary-background-color);
-    color: var(--text-color);
+    background: var(--secondary-background-color, rgba(128, 128, 128, 0.10));
+    color: inherit;
     border-left: 4px solid #79B8E8;
     border-radius: 8px;
     padding: 14px 18px;
 }
 .source-card a {
-    color: var(--text-color) !important;
+    color: var(--primary-color, #3985C6) !important;
     text-decoration: underline;
 }
 
 /* Pestañas */
 .stTabs [data-baseweb="tab"] {
     font-weight: 650;
-    color: var(--text-color);
 }
 .stTabs [aria-selected="true"] {
-    color: var(--text-color) !important;
     border-bottom-color: #79B8E8 !important;
 }
 
 /* Tablas */
 [data-testid="stDataFrame"] {
-    border: 1px solid var(--panel-border);
+    border: 1px solid rgba(128, 128, 128, 0.25);
     border-radius: 10px;
 }
 
@@ -186,11 +170,10 @@ div[data-testid="stMetricValue"] {
     color: #17365D;
 }
 
-/* Avisos y contenedores: conservar contraste del tema */
+/* Avisos y contenedores */
 [data-testid="stAlert"] {
     border-radius: 10px;
 }
-
 </style>
 """, unsafe_allow_html=True)
 
